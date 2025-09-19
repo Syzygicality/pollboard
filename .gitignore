@@ -1,9 +1,9 @@
-# Ignore __pycache__
-__pycache__/
-*.pyc
+# # Ignore __pycache__
+# __pycache__/
+# *.pyc
 
-# Ignore venv
-.venv/
+# # Ignore venv
+# .venv/
 
-# Igore .env
-.env
+# # Igore .env
+# .env
