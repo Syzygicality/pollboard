@@ -8,6 +8,9 @@ import uuid
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+    def __str__(self):
+        return self.username
+
 class Poll(models.Model):
     poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls")
@@ -16,11 +19,17 @@ class Poll(models.Model):
     options = ArrayField(base_field=models.UUIDField())
     likes = models.IntegerField()
 
+    def __str__(self):
+        return self.title
+
 class Option(models.Model):
     option_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.CharField(max_length=64)
     votes = models.IntegerField()
+
+    def __str__(self):
+        return self.choice
 
 class Draft(models.Model):
     poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -28,6 +37,9 @@ class Draft(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4000, blank=True, null=True)
     options = ArrayField(base_field=models.CharField(max_length=64))
+
+    def __str__(self):
+        return self.title
 
 class Vote(models.Model):
     vote_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
