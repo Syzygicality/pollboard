@@ -10,7 +10,7 @@ class User(AbstractUser):
 
 class Poll(models.Model):
     poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls")
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4000, blank=True, null=True)
     options = ArrayField(base_field=models.UUIDField())
@@ -24,18 +24,18 @@ class Option(models.Model):
 
 class Draft(models.Model):
     poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="drafts")
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4000, blank=True, null=True)
     options = ArrayField(base_field=models.CharField(max_length=64))
 
 class Vote(models.Model):
     vote_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="votes")
     option_id = models.ForeignKey(Option, on_delete=models.CASCADE)
     poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
 
 class Like(models.Model):
     like_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="likes")
     poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
