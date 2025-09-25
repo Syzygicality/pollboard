@@ -32,7 +32,7 @@ class Option(models.Model):
         return self.choice
 
 class Draft(models.Model):
-    poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draft_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="drafts")
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4000, blank=True, null=True)
