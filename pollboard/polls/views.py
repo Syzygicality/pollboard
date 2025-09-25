@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from rest_framework import generics, status, permissions
 from .serializers import PollSerializer, DraftSerializer, UserSerializer, OptionSerializer
-from .models import Poll, Draft, User, Option
+from .models import Poll, Draft, User, Option, Like
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
-from django.db import transaction
+from django.db import transaction, models
 
 # Create your views here.
 
@@ -90,3 +90,25 @@ class DraftSingleView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "draft_id"
     queryset = Draft.objects.all()
 
+class PollLikeView(generics.UpdateAPIView):
+    serializer_class = PollSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user
+        poll_id = kwargs.get("poll_id")
+        
+        with transaction.atomic():
+            check_like = Like.objects.filter(poll_id=poll_id, user_id=user)
+            if check_like:
+                Poll.objects.filter(poll_id=poll_id).update(likes=models.F("likes") - 1)
+                check_like.delete()
+            else:
+                Poll.objects.filter(poll_id=poll_id).update(likes=models.F("likes") + 1)
+                Like.objects.create(
+                    user_id=user,
+                    poll_id=poll_id
+                )
+            likes = Poll.objects.get(poll_id=poll_id).likes
+        
+        return Response({"likes": likes}, status=status.HTTP_200_OK)
