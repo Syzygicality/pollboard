@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, status, permissions
 from .serializers import PollSerializer, DraftSerializer, UserSerializer, OptionSerializer
-from .models import Poll, Draft, User, Option, Like
+from .models import Poll, Draft, User, Option, Like, Vote
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from django.db import transaction, models
@@ -112,3 +112,23 @@ class PollLikeView(generics.UpdateAPIView):
             likes = Poll.objects.get(poll_id=poll_id).likes
         
         return Response({"likes": likes}, status=status.HTTP_200_OK)
+
+class VoteView(generics.UpdateAPIView):
+    serializer_class = OptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user
+        option_id = kwargs.get("option_id")
+        with transaction.atomic():
+            if Vote.objects.filter(option_id=option_id, user_id=user).exists():
+                return ValidationError("You have already voted on this poll.")
+            Option.objects.filter(option_id=option_id).update(votes=models.F("votes") + 1)
+            Vote.objects.create(
+                user_id=user,
+                option_id=option_id,
+                poll_id=Option.objects.get(option_id=option_id).poll_id
+            )
+            votes = Option.objects.get(option_id=option_id).votes
+        
+        return Response({"votes": votes}, status=status.HTTP_200_OK)
