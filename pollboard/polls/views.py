@@ -122,7 +122,7 @@ class VoteView(generics.UpdateAPIView):
         option_id = kwargs.get("option_id")
         with transaction.atomic():
             if Vote.objects.filter(option_id=option_id, user_id=user).exists():
-                return ValidationError("You have already voted on this poll.")
+                raise ValidationError("You have already voted on this poll.")
             Option.objects.filter(option_id=option_id).update(votes=models.F("votes") + 1)
             Vote.objects.create(
                 user_id=user,
