@@ -17,7 +17,7 @@ class Poll(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4000, blank=True, null=True)
     options = ArrayField(base_field=models.UUIDField())
-    likes = models.IntegerField()
+    likes = models.IntegerField(default=0)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Option(models.Model):
     option_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.CharField(max_length=64)
-    votes = models.IntegerField()
+    votes = models.IntegerField(default=0)
 
     def __str__(self):
         return self.choice
