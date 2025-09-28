@@ -5,5 +5,5 @@ __pycache__/
 # Ignore venv
 .venv/
 
-# Igore .env
+# Ignore .env
 .env
