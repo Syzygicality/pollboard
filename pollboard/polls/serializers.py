@@ -1,10 +1,15 @@
 from rest_framework import serializers
-from .models import User, Poll, Option, Draft
+from .models import User, Category, Poll, Option, Draft, Report
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["user_id", "username"]
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["category"]
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,3 +33,8 @@ class DraftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Draft
         fields = ["draft_id", "title", "description", "options"]
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = ["report_id", "user_id", "reason"]
