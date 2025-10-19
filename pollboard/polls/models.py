@@ -11,10 +11,17 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class Category(models.Model):
+    category = models.CharField(max_length=255, primary_key=True)
+
+    def __str__(self):
+        return self.category
+
 class Poll(models.Model):
     poll_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls")
     title = models.CharField(max_length=255)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, null=True)
     description = models.TextField(max_length=4000, blank=True, null=True)
     options = ArrayField(base_field=models.UUIDField())
     likes = models.IntegerField(default=0)
