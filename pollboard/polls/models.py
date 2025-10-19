@@ -55,3 +55,13 @@ class Like(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="likes")
     poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
+
+class Report(models.Model):
+    report_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    reason = models.CharField(max_length=255)
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.reason
