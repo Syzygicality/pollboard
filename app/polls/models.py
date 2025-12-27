@@ -26,7 +26,6 @@ class Option(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="options")
     label = models.CharField(max_length=64)
     order = models.PositiveIntegerField()
-    votes = models.IntegerField(default=0)
 
     class Meta:
         ordering = ["order"]

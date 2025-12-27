@@ -17,4 +17,4 @@ class Characteristics(models.Model):
     age = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return f"Characteristics for {self.user.username}"
+        return f"Characteristics for {self.user}"
