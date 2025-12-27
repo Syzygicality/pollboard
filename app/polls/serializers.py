@@ -10,10 +10,15 @@ class CategorySerializer(ModelSerializer):
         read_only_fields = ["name"]
 
 class OptionSerializer(ModelSerializer):
+    votes = SerializerMethodField()
+    
     class Meta:
         model = Option
         fields = ["id", "label", "votes"]
         read_only_fields = ["id", "label", "votes"]
+    
+    def get_votes(self, obj):
+        return obj.votes.count()
 
 class PollSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
