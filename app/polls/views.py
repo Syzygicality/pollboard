@@ -1,3 +1,93 @@
-from django.shortcuts import render
+from .models import Poll, Option, Category, Like
+from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer
+from .permissions import IsAuthor
 
+from rest_framework import generics, mixins, status
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.response import Response
+
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
+
+class CategoryView(generics.ListAPIView):
+    queryset = Category.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        categories = list(self.get_queryset().values_list("name", flat=True))
+        return Response({"categories": categories})
+
+class PollListView(generics.ListAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["category"]
+    ordering = ["-creation_date"]
+    ordering_fields = ["creation_date"]
+
+class PollSingleView(generics.RetrieveAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+class PollCreateView(generics.CreateAPIView):
+    serializer_class = PollCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        poll = Poll.objects.create(
+            user=self.request.user,
+            title=serializer.validated_data["title"],
+            category=serializer.validated_data["category"],
+            description=serializer.validated_data.get("description", "")
+        )
+        Option.objects.bulk_create([
+            Option(poll=poll, label=label, order=i) for i, label in enumerate(serializer.validated_data["options"])
+        ])
+
+class PollUpdateDeleteView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+    permission_classes = [IsAuthenticated, IsAuthor]
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class PollLikedView(generics.ListAPIView):
+    serializer_class = PollSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Poll.objects.filter(likes__user=user)
+
+class LikeView(generics.CreateAPIView):
+    queryset = Like.objects.all()
+    serializer_class = None
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer=None):
+        user = self.request.user
+        poll_id = self.kwargs["pk"]
+        poll = get_object_or_404(Poll, pk=poll_id)
+        existing_like = Like.objects.filter(poll=poll, user=user).first()
+        if not existing_like:
+            Like.objects.create(poll=poll, user=user)
+        
+
+class UnlikeView(generics.DestroyAPIView):
+    queryset = Like.objects.all()
+    serializer_class = None
+    permission_classes = [IsAuthenticated, IsAuthor]
+
+    def get_object(self):
+        user = self.request.user
+        poll_id = self.kwargs["pk"]
+        poll = get_object_or_404(Poll, pk=poll_id)
+        return get_object_or_404(Like, poll=poll, user=user)

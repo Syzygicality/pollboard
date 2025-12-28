@@ -42,8 +42,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'django_countries',
+    'django_filters',
     'polls',
     'users',
+    'stats',
 ]
 
 MIDDLEWARE = [
