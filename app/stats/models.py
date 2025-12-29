@@ -1,4 +1,5 @@
 from polls.models import Option
+from users.models import User
 
 from django.db import models
 from django_countries.fields import CountryField
@@ -11,9 +12,8 @@ class Vote(models.Model):
     """
     id = models.CharField(primary_key=True, default=shortuuid.uuid, editable=False)
     option = models.ForeignKey(Option, on_delete=models.CASCADE, related_name="votes")
-    country = CountryField(blank=True, null=True)
-    gender = models.CharField(max_length=32, default="Prefer not to say", blank=True, null=True)
-    age = models.IntegerField(blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="votes")
+    characteristics_snapshot = models.JSONField()
 
     def __str__(self):
         return f"Vote {self.id} for {self.option}"
