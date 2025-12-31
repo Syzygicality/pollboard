@@ -46,8 +46,8 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        fields = ["id", "title", "user", "category", "description", "options", "votable", "likes", "liked", "creation_date", "time_left"]
-        read_only_fields = ["id", "title", "user", "options", "votable", "likes", "liked", "creation_date", "time_left"]
+        fields = ["id", "title", "user", "category", "description", "options", "voted", "votable", "likes", "liked", "creation_date", "time_left"]
+        read_only_fields = ["id", "title", "user", "options", "voted", "votable", "likes", "liked", "creation_date", "time_left"]
 
     def get_options(self, obj):
         return OptionSerializer(obj.options.all(), many=True).data

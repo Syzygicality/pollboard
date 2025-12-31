@@ -73,7 +73,14 @@ class PollLikedView(generics.ListAPIView):
         user = self.request.user
         return Poll.objects.filter(likes__user=user)
 
+class PollVotedView(generics.ListAPIView):
+    serializer_class = PollSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        return Poll.objects.filter(options__votes__user=user).distinct()
+        
 
 class LikeView(generics.CreateAPIView):
     queryset = Like.objects.all()
