@@ -1,7 +1,10 @@
 from users.models import User
 
 from django.db import models
+from django.utils import timezone
 import shortuuid
+from datetime import timedelta
+
 
 # Create your models here.
 class Category(models.Model):
@@ -16,7 +19,16 @@ class Poll(models.Model):
     title = models.CharField(max_length=300, editable=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     description = models.TextField(max_length=1000, null=True, blank=True)
-    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    vote_period = models.IntegerField(default=3)
+
+    @property
+    def closing_date(self):
+        return self.creation_date + timedelta(days=self.vote_period)
+    
+    @property
+    def votable(self):
+        return timezone.now() < self.closing_date
 
     def __str__(self):
         return self.title

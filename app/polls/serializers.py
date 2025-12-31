@@ -2,6 +2,8 @@ from .models import Category, Poll, Option
 from users.serializers import UserSerializer
 
 from rest_framework import serializers
+from django.utils import timezone
+from datetime import timedelta
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -26,6 +28,7 @@ class PollCreateSerializer(serializers.Serializer):
     category = serializers.SlugRelatedField(slug_field="name", queryset=Category.objects.all())
     description = serializers.CharField(max_length=1000, required=False, allow_blank=True)
     options = serializers.ListField(child=serializers.CharField(max_length=64), min_length=2, max_length=10)
+    vote_period = serializers.IntegerField()
 
     def validate_options(self, value):
         if len(set(value)) != len(value):
@@ -39,11 +42,12 @@ class PollSerializer(serializers.ModelSerializer):
     voted = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
+    time_left = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
-        fields = ["id", "title", "user", "category", "description", "options", "likes", "liked", "creation_date"]
-        read_only_fields = ["id", "title", "user", "options", "likes", "liked", "creation_date"]
+        fields = ["id", "title", "user", "category", "description", "options", "votable", "likes", "liked", "creation_date", "time_left"]
+        read_only_fields = ["id", "title", "user", "options", "votable", "likes", "liked", "creation_date", "time_left"]
 
     def get_options(self, obj):
         return OptionSerializer(obj.options.all(), many=True).data
@@ -62,3 +66,6 @@ class PollSerializer(serializers.ModelSerializer):
         if not request or not request.user.is_authenticated:
             return False
         return obj.likes.filter(user=request.user).exists()
+    
+    def get_time_left(self, obj):
+        return max(obj.closing_date - timezone.now(), timedelta(0))

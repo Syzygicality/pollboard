@@ -39,7 +39,8 @@ class PollCreateView(generics.CreateAPIView):
             user=self.request.user,
             title=serializer.validated_data["title"],
             category=serializer.validated_data["category"],
-            description=serializer.validated_data.get("description", "")
+            description=serializer.validated_data.get("description", ""),
+            vote_period=serializer.validated_data["vote_period"]
         )
         Option.objects.bulk_create([
             Option(poll=poll, label=label, order=i) for i, label in enumerate(serializer.validated_data["options"])
