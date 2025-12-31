@@ -2,13 +2,14 @@ from .models import Poll, Option, Category, Like
 from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer
 from .permissions import IsAuthor
 
-from rest_framework import generics, mixins, status
+from rest_framework import generics, mixins
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Count
+from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
+from rest_framework.filters import OrderingFilter
 # Create your views here.
 
 class CategoryView(generics.ListAPIView):
@@ -19,12 +20,16 @@ class CategoryView(generics.ListAPIView):
         return Response({"categories": categories})
 
 class PollListView(generics.ListAPIView):
-    queryset = Poll.objects.all()
     serializer_class = PollSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["category"]
     ordering = ["-creation_date"]
     ordering_fields = ["creation_date"]
+
+    def get_queryset(self):
+        return Poll.objects.annotate(
+            like_count=Count("likes")
+        )
 
 class PollSingleView(generics.RetrieveAPIView):
     queryset = Poll.objects.all()
