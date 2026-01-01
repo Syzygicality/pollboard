@@ -8,8 +8,8 @@ from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
-from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
-from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 # Create your views here.
 
 class CategoryView(generics.ListAPIView):
@@ -21,10 +21,11 @@ class CategoryView(generics.ListAPIView):
 
 class PollListView(generics.ListAPIView):
     serializer_class = PollSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["category"]
     ordering = ["-creation_date"]
     ordering_fields = ["creation_date"]
+    search_fields = ["title", "description"]
 
     def get_queryset(self):
         return Poll.objects.annotate(
