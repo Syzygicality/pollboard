@@ -11,5 +11,4 @@ class UserSerializer(ModelSerializer):
 class CharacteristicsSerializer(ModelSerializer):
     class Meta:
         model = Characteristics
-        fields = ['id', 'user', 'country', 'gender', 'age']
-        read_only_fields = ['id', 'user']
+        fields = ['country', 'gender', 'age']
