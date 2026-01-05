@@ -1,4 +1,4 @@
-from .models import Category, Poll, Option
+from .models import Category, Poll, Option, Like
 from users.serializers import UserSerializer
 
 from rest_framework import serializers
@@ -36,8 +36,8 @@ class PollCreateSerializer(serializers.Serializer):
         return value
 
 class PollSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    category = CategorySerializer(read_only=True)
+    user = serializers.SerializerMethodField()
+    # category = CategorySerializer(read_only=True)
     options = serializers.SerializerMethodField()
     voted = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
@@ -48,6 +48,9 @@ class PollSerializer(serializers.ModelSerializer):
         model = Poll
         fields = ["id", "title", "user", "category", "description", "options", "voted", "votable", "likes", "liked", "creation_date", "time_left"]
         read_only_fields = ["id", "title", "user", "options", "voted", "votable", "likes", "liked", "creation_date", "time_left"]
+
+    def get_user(self, obj):
+        return {"id": obj.user.id, "username": obj.user.username}
 
     def get_options(self, obj):
         return OptionSerializer(obj.options.all(), many=True).data
@@ -69,3 +72,8 @@ class PollSerializer(serializers.ModelSerializer):
     
     def get_time_left(self, obj):
         return max(obj.closing_date - timezone.now(), timedelta(0))
+    
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = []

@@ -1,5 +1,5 @@
 from .models import Poll, Option, Category, Like
-from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer
+from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer, LikeSerializer
 from .permissions import IsAuthor
 
 from rest_framework import generics, mixins
@@ -16,7 +16,7 @@ class CategoryView(generics.ListAPIView):
     queryset = Category.objects.all()
 
     def list(self, request, *args, **kwargs):
-        categories = list(self.get_queryset().values_list("name", flat=True))
+        categories = list(self.get_queryset().order_by("name").values_list("name", flat=True))
         return Response({"categories": categories})
 
 class PollListView(generics.ListAPIView):
@@ -49,7 +49,7 @@ class PollCreateView(generics.CreateAPIView):
             vote_period=serializer.validated_data["vote_period"]
         )
         Option.objects.bulk_create([
-            Option(poll=poll, label=label, order=i) for i, label in enumerate(serializer.validated_data["options"])
+            Option(poll=poll, label=label.strip(), order=i) for i, label in enumerate(serializer.validated_data["options"])
         ])
 
 class PollUpdateDeleteView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
@@ -85,7 +85,7 @@ class PollVotedView(generics.ListAPIView):
 
 class LikeView(generics.CreateAPIView):
     queryset = Like.objects.all()
-    serializer_class = None
+    serializer_class = LikeSerializer
     permission_classes = [IsAuthenticated]
     
     def perform_create(self, serializer=None):
@@ -99,7 +99,7 @@ class LikeView(generics.CreateAPIView):
 
 class UnlikeView(generics.DestroyAPIView):
     queryset = Like.objects.all()
-    serializer_class = None
+    serializer_class = LikeSerializer
     permission_classes = [IsAuthenticated, IsAuthor]
 
     def get_object(self):

@@ -8,7 +8,7 @@ from datetime import timedelta
 
 # Create your models here.
 class Category(models.Model):
-    name = models.CharField(primary_key=True, max_length=32, editable=False)
+    name = models.CharField(primary_key=True, max_length=32)
 
     def __str__(self):
         return self.name
@@ -19,7 +19,7 @@ class Poll(models.Model):
     title = models.CharField(max_length=300, editable=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     description = models.TextField(max_length=1000, null=True, blank=True)
-    creation_date = models.DateTimeField(auto_now_add=True)
+    creation_date = models.DateTimeField(auto_now_add=True, editable=False)
     vote_period = models.IntegerField(default=3)
 
     @property

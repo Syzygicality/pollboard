@@ -21,6 +21,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
-    path("/", include("polls.urls")),
-    path("/", include("users.urls")),
+    path("", include("polls.urls")),
+    path("", include("users.urls")),
+    path("", include("stats.urls")),
 ]
