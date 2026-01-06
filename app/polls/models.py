@@ -56,3 +56,14 @@ class Like(models.Model):
     def __str__(self):
         return f"Poll '{self.poll}' liked by {self.user}."
 
+class Report(models.Model):
+    id = models.CharField(primary_key=True, default=shortuuid.uuid, editable=False)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="reports")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports")
+    reason = models.TextField(max_length=1000)
+
+    class Meta:
+        unique_together = ("poll", "user")
+
+    def __str__(self):
+        return f"Poll '{self.poll}' reportd by {self.user}."
