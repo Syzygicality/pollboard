@@ -8,6 +8,7 @@ from .views import (
     PollVotedView,
     LikeView, 
     UnlikeView,
+    ReportView
 )
 
 from django.urls import path
@@ -22,4 +23,5 @@ urlpatterns = [
     path("polls/<str:pk>/edit", PollUpdateDeleteView.as_view(), name="poll-edit"),
     path("polls/<str:pk>/like", LikeView.as_view(), name="poll-like"),
     path("polls/<str:pk>/unlike", UnlikeView.as_view(), name="poll-unlike"),
+    path("polls/<str:pk>/report", ReportView.as_view(), name="poll-report"),
 ]

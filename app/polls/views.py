@@ -1,10 +1,11 @@
-from .models import Poll, Option, Category, Like
-from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer, LikeSerializer
+from .models import Poll, Option, Category, Like, Report
+from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer, LikeSerializer, ReportCreateSerializer
 from .permissions import IsAuthor
 
 from rest_framework import generics, mixins
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -46,7 +47,7 @@ class PollCreateView(generics.CreateAPIView):
             title=serializer.validated_data["title"],
             category=serializer.validated_data["category"],
             description=serializer.validated_data.get("description", ""),
-            vote_period=serializer.validated_data["vote_period"]
+            vote_period=serializer.validated_data.get("vote_period", 3)
         )
         Option.objects.bulk_create([
             Option(poll=poll, label=label.strip(), order=i) for i, label in enumerate(serializer.validated_data["options"])
@@ -93,8 +94,9 @@ class LikeView(generics.CreateAPIView):
         poll_id = self.kwargs["pk"]
         poll = get_object_or_404(Poll, pk=poll_id)
         existing_like = Like.objects.filter(poll=poll, user=user).first()
-        if not existing_like:
-            Like.objects.create(poll=poll, user=user)
+        if existing_like:
+            raise ValidationError("Poll has already been liked by you.")
+        Like.objects.create(poll=poll, user=user)
         
 
 class UnlikeView(generics.DestroyAPIView):
@@ -107,3 +109,17 @@ class UnlikeView(generics.DestroyAPIView):
         poll_id = self.kwargs["pk"]
         poll = get_object_or_404(Poll, pk=poll_id)
         return get_object_or_404(Like, poll=poll, user=user)
+
+class ReportView(generics.CreateAPIView):
+    queryset = Report.objects.all()
+    serializer_class = ReportCreateSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        poll_id = self.kwargs["pk"]
+        poll = get_object_or_404(Poll, pk=poll_id)
+        existing_report = Report.objects.filter(poll=poll, user=user).first()
+        if existing_report:
+            raise ValidationError("Poll has already been reported.")
+        Report.objects.create(poll=poll, user=user, reason=serializer.validated_data["reason"])

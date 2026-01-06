@@ -1,4 +1,4 @@
-from .models import Category, Poll, Option, Like
+from .models import Category, Poll, Option, Like, Report
 from users.serializers import UserSerializer
 
 from rest_framework import serializers
@@ -77,3 +77,6 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = []
+
+class ReportCreateSerializer(serializers.Serializer):
+    reason = serializers.CharField(max_length=1000, required=False, allow_blank=True)
