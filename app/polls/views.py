@@ -119,7 +119,9 @@ class ReportView(generics.CreateAPIView):
         user = self.request.user
         poll_id = self.kwargs["pk"]
         poll = get_object_or_404(Poll, pk=poll_id)
+        if poll.user == user:
+            raise ValidationError("You cannot report your own poll.")
         existing_report = Report.objects.filter(poll=poll, user=user).first()
         if existing_report:
-            raise ValidationError("Poll has already been reported.")
+            raise ValidationError("Poll has already been reported by you.")
         Report.objects.create(poll=poll, user=user, reason=serializer.validated_data["reason"])
