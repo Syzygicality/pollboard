@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 # Create your views here.
@@ -42,16 +43,18 @@ class PollCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        poll = Poll.objects.create(
-            user=self.request.user,
-            title=serializer.validated_data["title"],
-            category=serializer.validated_data["category"],
-            description=serializer.validated_data.get("description", ""),
-            vote_period=serializer.validated_data.get("vote_period", 3)
-        )
-        Option.objects.bulk_create([
-            Option(poll=poll, label=label.strip(), order=i) for i, label in enumerate(serializer.validated_data["options"])
-        ])
+        with transaction.atomic():
+            poll = Poll.objects.create(
+                user=self.request.user,
+                title=serializer.validated_data["title"],
+                category=serializer.validated_data["category"],
+                description=serializer.validated_data.get("description", ""),
+                vote_period=serializer.validated_data.get("vote_period", 3)
+            )
+            Option.objects.bulk_create([
+                Option(poll=poll, label=label.strip(), order=i) 
+                for i, label in enumerate(serializer.validated_data["options"])
+            ]) 
 
 class PollUpdateDeleteView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
     queryset = Poll.objects.all()
@@ -65,7 +68,8 @@ class PollUpdateDeleteView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, ge
         return self.partial_update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        with transaction.atomic():
+            return self.destroy(request, *args, **kwargs)
 
 class PollLikedView(generics.ListAPIView):
     serializer_class = PollSerializer
@@ -93,10 +97,10 @@ class LikeView(generics.CreateAPIView):
         user = self.request.user
         poll_id = self.kwargs["pk"]
         poll = get_object_or_404(Poll, pk=poll_id)
-        existing_like = Like.objects.filter(poll=poll, user=user).first()
-        if existing_like:
-            raise ValidationError("Poll has already been liked by you.")
-        Like.objects.create(poll=poll, user=user)
+        with transaction.atomic():
+            if Like.objects.filter(poll=poll, user=user).first():
+                raise ValidationError("Poll has already been liked by you.")
+            Like.objects.create(poll=poll, user=user)
         
 
 class UnlikeView(generics.DestroyAPIView):
@@ -121,7 +125,7 @@ class ReportView(generics.CreateAPIView):
         poll = get_object_or_404(Poll, pk=poll_id)
         if poll.user == user:
             raise ValidationError("You cannot report your own poll.")
-        existing_report = Report.objects.filter(poll=poll, user=user).first()
-        if existing_report:
-            raise ValidationError("Poll has already been reported by you.")
-        Report.objects.create(poll=poll, user=user, reason=serializer.validated_data["reason"])
+        with transaction.atomic():
+            if Report.objects.filter(poll=poll, user=user).first():
+                raise ValidationError("Poll has already been reported by you.")
+            Report.objects.create(poll=poll, user=user, reason=serializer.validated_data["reason"])
