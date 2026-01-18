@@ -12,11 +12,12 @@ This project is designed for educational purposes and demonstrates a scalable ar
     * Set voting periods with automatic closing dates.
     * Categorize polls for easy filtering.
 
+* **Automoderation**: Integration with the **OpenAI Text Moderation API** to automatically flag or reject inappropriate poll content upon creation.
 
 * **Engagement System**:
-* **Voting**: Users can vote on polls within the active period. The system ensures one vote per user per poll.
-* **Likes**: Users can like polls to show appreciation.
-* **Reporting**: Community moderation tools allowing users to report polls with specific reasons.
+    * **Voting**: Users can vote on polls within the active period. The system ensures one vote per user per poll.
+    * **Likes**: Users can like polls to show appreciation.
+    * **Reporting**: Community moderation tools allowing users to report polls with specific reasons.
 
 
 * **Demographics & Statistics**:
@@ -31,7 +32,7 @@ This project is designed for educational purposes and demonstrates a scalable ar
 
 The following features are currently in development and will be released soon:
 
-* **Automoderation**: Integration with the **OpenAI Text Moderation API** to automatically flag or reject inappropriate poll content upon creation.
+
 * **Vote Aggregation**: Advanced statistical endpoints to aggregate vote data based on user demographics (e.g., "How did users from Canada vote vs. users from the US?").
 
 ## Tech Stack

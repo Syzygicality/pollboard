@@ -1,6 +1,7 @@
 from .models import Poll, Option, Category, Like, Report
 from .serializers import OptionSerializer, PollSerializer, CategorySerializer, PollCreateSerializer, LikeSerializer, ReportCreateSerializer
 from .permissions import IsAuthor
+from app.services.openai_client import moderation_check
 
 from rest_framework import generics, mixins
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -43,6 +44,8 @@ class PollCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        if moderation_check(serializer):
+            raise ValidationError("Auto-moderation has flagged your content.")
         with transaction.atomic():
             poll = Poll.objects.create(
                 user=self.request.user,
@@ -54,7 +57,7 @@ class PollCreateView(generics.CreateAPIView):
             Option.objects.bulk_create([
                 Option(poll=poll, label=label.strip(), order=i) 
                 for i, label in enumerate(serializer.validated_data["options"])
-            ]) 
+            ])
 
 class PollUpdateDeleteView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
     queryset = Poll.objects.all()
